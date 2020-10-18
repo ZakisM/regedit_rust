@@ -1,5 +1,7 @@
+use crate::config::CONFIG_FILE_NAME;
 use crate::regedit_error::RegeditError;
 
+mod config;
 mod regedit_error;
 mod registry_handler;
 mod registry_value;
@@ -8,30 +10,42 @@ mod util;
 type Result<T> = std::result::Result<T, RegeditError>;
 
 fn main() -> Result<()> {
-    let registry_key_name = "SOFTWARE\\Microsoft\\Internet Explorer\\IEDevTools\\";
-    let registry_value_name = "Disabled";
+    let conf = config::Config::load()?;
 
-    println!(
-        "Registry Key name: {}\nRegistry Value name: {}\nCurrent value: {:?}\n",
-        registry_key_name,
-        registry_value_name,
-        registry_handler::get_registry_value(registry_key_name, registry_value_name)?
-    );
+    if conf.is_generated() {
+        let conf_path = conf.save()?;
 
-    //
-    // set_registry_value(
-    //     registry_key,
-    //     registry_value,
-    //     &RegistryValueType::RegDword,
-    //     0u32.to_ne_bytes().to_vec(),
-    // )?;
-    //
-    // println!(
-    //     "Registry Key name: {}\nRegistry Value name: {}\nNew value: {}\n",
-    //     registry_key,
-    //     registry_value,
-    //     get_registry_value(registry_key, registry_value, &registry_value_type)?
-    // );
+        println!("A sample config file '{}' has been generated at '{}'. Please modify this before re-running the tool.", CONFIG_FILE_NAME, conf_path)
+    } else {
+        for entry in conf.registry() {
+            match entry.current_registry_value_details() {
+                Ok(details) => {
+                    println!("\n~~~PREVIOUS VALUE~~~\n");
+                    println!("{}", details);
+                }
+                Err(e) => {
+                    println!("{}", e);
+                    continue;
+                }
+            }
+
+            if let Err(e) = entry.set_registry_value(entry.registry_value().val_as_vec_u8()) {
+                println!("{}", e);
+                continue;
+            }
+
+            match entry.current_registry_value_details() {
+                Ok(details) => {
+                    println!("\n~~~NEW VALUE~~~\n");
+                    println!("{}", details);
+                }
+                Err(e) => {
+                    println!("{}", e);
+                    continue;
+                }
+            }
+        }
+    }
 
     Ok(())
 }

@@ -47,3 +47,15 @@ impl From<FromUtf8Error> for RegeditError {
         Self::new(e.to_string())
     }
 }
+
+impl From<serde_yaml::Error> for RegeditError {
+    fn from(e: serde_yaml::Error) -> Self {
+        Self::new(e.to_string())
+    }
+}
+
+impl From<std::io::Error> for RegeditError {
+    fn from(e: std::io::Error) -> Self {
+        Self::new(e.to_string())
+    }
+}
