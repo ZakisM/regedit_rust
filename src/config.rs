@@ -142,18 +142,14 @@ impl Config {
         }
     }
 
-    pub fn save(&self) -> Result<String> {
+    pub fn save(&self) -> Result<PathBuf> {
         let yaml_str = serde_yaml::to_string(&self)?;
 
         let conf_path = Self::get_conf_path()?;
 
-        let path_as_str = conf_path
-            .to_str()
-            .ok_or_else(|| RegeditError::new("Failed to validate this config path exists"))?;
-
         fs::write(&conf_path, yaml_str)?;
 
-        Ok(path_as_str.to_owned())
+        Ok(conf_path)
     }
 
     pub fn load() -> Result<Self> {

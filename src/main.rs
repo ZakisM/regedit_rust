@@ -15,7 +15,7 @@ fn main() -> Result<()> {
     if conf.is_generated() {
         let conf_path = conf.save()?;
 
-        println!("A sample config file '{}' has been generated at '{}'. Please modify this before re-running the tool.", CONFIG_FILE_NAME, conf_path)
+        println!("A sample config file '{}' has been generated at '{}'. Please modify this before re-running the tool.", CONFIG_FILE_NAME, conf_path.display())
     } else {
         for entry in conf.registry() {
             match entry.current_registry_value_details() {
